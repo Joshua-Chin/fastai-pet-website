@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+        <title>FastAI Pet Classifier</title>
+    </head>
+    <body>
+        <input id="photo" type="file">
+        <div id="result"></div>
+
+        <script type="module">
+            const photo = document.getElementById("photo");
+            const result = document.getElementById("result");
+
+            photo.addEventListener("input", async () => {
+                // Encode the image
+                const reader = new FileReader();
+                const dataUrl = await asyncReadAsDataURL(reader, photo.files[0]);
+                console.log(dataUrl);
+                // Send the request
+                const response = await fetch(
+                    "https://joshuachin-fastai-pet-classifier.hf.space/api/predict/", 
+                    {
+                        method: "POST", 
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ "data": [dataUrl] }),
+                    }
+                );
+                // Process the results
+                const json = await response.json();
+                console.log(response);
+                const label = json["data"][0]["confidences"][0]["label"];
+                // Show the result
+                result.innerHTML = `<br/><img src="${dataUrl}" width="300"> <p>${label}</p>`;
+            });
+
+            function asyncReadAsDataURL(reader, file) {
+                return new Promise(resolve => {
+                    reader.addEventListener("load", () => {
+                        resolve(reader.result);
+                    });
+                    reader.readAsDataURL(file);
+                })
+            }
+        </script>
+    </body>
+</html>
